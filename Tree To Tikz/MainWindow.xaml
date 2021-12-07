@@ -1,0 +1,76 @@
+﻿<Window x:Class="Tree_To_Tikz.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Tree_To_Tikz"
+        mc:Ignorable="d"
+        Title="Tree to tikz" Height="450" Width="800">
+    <Grid Background="#000000">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition/>
+            <ColumnDefinition/>
+        </Grid.ColumnDefinitions>
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="3*"/>
+                <RowDefinition Height="3*"/>
+            </Grid.RowDefinitions>
+            <ComboBox x:Name="selection" SelectionChanged="TreeSelectionChanged" Width="80" Height="25" HorizontalAlignment="Left" Margin="10">
+                <ComboBoxItem IsSelected="True">B tree</ComboBoxItem>
+                <ComboBoxItem>B+ tree</ComboBoxItem>
+                <ComboBoxItem>B* tree</ComboBoxItem>
+            </ComboBox>
+            <Border Grid.Row="1" Margin="10" CornerRadius="10" Background="#17181a">
+                <TextBox x:Name="input" Foreground="White" Background="Transparent" AcceptsReturn="True" TextChanged="OnTextChanged" BorderThickness="0" Margin="5" CaretBrush="White"/>
+            </Border>
+            <StackPanel Margin="10" Grid.Row="2">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock x:Name="degreeType" Foreground="LightGray">Minimal degree</TextBlock>
+                    <TextBlock Foreground="LightGray" Grid.Column="1" Margin="20,0,20,0" Text="{Binding ElementName=degreeSlider,Path=Value}" />
+                    <Slider
+                        Margin="20,0,20,0"
+                        Grid.Column="2"
+                        Orientation="Horizontal"
+                        Minimum="0"
+                        Maximum="0"
+                        Value="0"
+                        IsSnapToTickEnabled="True"
+                        TickFrequency="1"
+                        x:Name="degreeSlider"
+                        ValueChanged="DegreeChanged"
+                    />
+                </Grid>
+                <StackPanel Margin="0,20,0,0" x:Name="useSplitsPanel" Orientation="Horizontal">
+                    <TextBlock Foreground="LightGray">Use preventive splits</TextBlock>
+                    <CheckBox Checked="useSplits_Checked" Unchecked="useSplits_Checked" x:Name="useSplits" Margin="40 0 0 0"></CheckBox>
+                </StackPanel>
+            </StackPanel>
+        </Grid>
+        <Grid  Grid.Column="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="50"/>
+            </Grid.RowDefinitions>
+            <Border Margin="10" Background="#17181a" CornerRadius="10">
+                <ScrollViewer  HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden">
+                    <TextBox BorderThickness="0" IsReadOnly="False" x:Name="output" Foreground="#a5d4a1" Background="Transparent" Margin="5"/>
+                </ScrollViewer>
+            </Border>
+            <Grid Grid.Row="1" Margin="10,0,10,15">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="2*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Button Click="CopyOutput"  Background="Gray" FontSize="17">Copy Output</Button>
+                <Button Click="CopySetting"  Grid.Column="1" Background="Gray" FontSize="17">Copy Settings</Button>
+            </Grid>
+        </Grid>
+    </Grid>
+</Window>
