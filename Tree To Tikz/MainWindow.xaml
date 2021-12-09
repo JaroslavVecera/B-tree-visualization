@@ -21,6 +21,7 @@
                 <ComboBoxItem IsSelected="True">B tree</ComboBoxItem>
                 <ComboBoxItem>B+ tree</ComboBoxItem>
                 <ComboBoxItem>B* tree</ComboBoxItem>
+                <ComboBoxItem>Rtree</ComboBoxItem>
             </ComboBox>
             <Border Grid.Row="1" Margin="10" CornerRadius="10" Background="#17181a">
                 <TextBox x:Name="input" Foreground="White" Background="Transparent" AcceptsReturn="True" TextChanged="OnTextChanged" BorderThickness="0" Margin="5" CaretBrush="White"/>
@@ -47,6 +48,27 @@
                         ValueChanged="DegreeChanged"
                     />
                 </Grid>
+                <Grid Margin="0,20,0,0" Visibility="Collapsed" x:Name="secondarySliderPanel">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock x:Name="secondaryDegreeType" Foreground="LightGray">Maximal degree</TextBlock>
+                    <TextBlock Foreground="LightGray" Grid.Column="1" Margin="20,0,20,0" Text="{Binding ElementName=secondaryDegreeSlider,Path=Value}" />
+                    <Slider
+                        Margin="20,0,20,0"
+                        Grid.Column="2"
+                        Orientation="Horizontal"
+                        Minimum="2"
+                        Maximum="5"
+                        Value="0"
+                        IsSnapToTickEnabled="True"
+                        TickFrequency="1"
+                        x:Name="secondaryDegreeSlider"
+                        ValueChanged="DegreeChanged"
+                    />
+                </Grid>
                 <StackPanel Margin="0,20,0,0" x:Name="useSplitsPanel" Orientation="Horizontal">
                     <TextBlock Foreground="LightGray">Use preventive splits</TextBlock>
                     <CheckBox Checked="useSplits_Checked" Unchecked="useSplits_Checked" x:Name="useSplits" Margin="40 0 0 0"></CheckBox>
@@ -69,7 +91,7 @@
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
                 <Button Click="CopyOutput"  Background="Gray" FontSize="17">Copy Output</Button>
-                <Button Click="CopySetting"  Grid.Column="1" Background="Gray" FontSize="17">Copy Settings</Button>
+                <Button Click="CopySetting"  Grid.Column="1" Background="Gray" FontSize="17">Copy Head</Button>
             </Grid>
         </Grid>
     </Grid>

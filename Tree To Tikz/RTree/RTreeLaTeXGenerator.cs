@@ -6,58 +6,56 @@ using System.Threading.Tasks;
 
 namespace Tree_To_Tikz
 {
-    class BTreeLaTeXGenerator
+    class RTreeLaTeXGenerator
     {
         Logger Logger { get; set; }
         double DigitWidth { get; } = 0.194;
         int MaxDegree { get; set; }
         bool CurvedArrows { get; set; } = false;
         string[] IntText { get; } = new string[] { "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve", "thirteen", "fourteen", "fiveteen", "sixteen", "seventeen", "eighteen", "nineteen", "twenty" };
-        BTreeNode Marked { get; set; } = null;
-        BTree Tree { get; set; }
+        RTreeNode Marked { get; set; } = null;
+        RTree Tree { get; set; }
 
-        public BTreeLaTeXGenerator(Logger l, BTree tree)
+        public RTreeLaTeXGenerator(Logger l, RTree tree)
         {
             Logger = l;
             Tree = tree;
             MaxDegree = tree.MaxDegree;
         }
 
-        public void Draw(BTreeNode marked)
+        public void Draw(RTreeNode marked)
         {
             Logger.Log(ToLaTeX(Tree.Root, marked));
         }
 
-        public void Add(int i)
+        public void Add(IndexRecord r)
         {
-            Logger.Log($"Přidání klíče {i}\n\n");
+            Logger.Log($"Přidání klíče s MBR {r}\n\n");
         }
 
-        public void Remove(int i)
+        public void CreateRoot(IndexRecord r)
         {
-            Logger.Log($"Odebrání klíče {i}\n\n");
+            Logger.Log($"Vytvoří se nový kořen s klíčem {r}\n\n");
         }
 
-        public void EmptyCantRemove(int i)
+        public void AddToLeaf(IndexRecord r, bool mustSplit)
         {
-            Logger.Log($"Strom je prázdný, nelze odebrat {i}\n\n");
-        }
-
-        public void CreateRoot(int i)
-        {
-            Logger.Log($"Vytvoří se nový kořen s klíčem {i}\n\n");
-        }
-
-        public void AddToList(int i, bool alreadyContains, bool mustSplit)
-        {
-            Logger.Log($"Nalezne se odpovídající list{(alreadyContains ? $", ten již {i} obsahuje" : $" a vloží se klíč {i}")}");
-            Logger.Log($"{ (mustSplit ? ".Uzel je přeplněný, je třeba Split" : "") }");
+            Logger.Log($"Nalezne se odpovídající list a vloží se klíč {r}");
+            Logger.Log($"{ (mustSplit ? ". Uzel je přeplněný, je třeba Split" : "") }");
             Logger.Log("\n\n");
         }
 
-        public void RemoveFromList(int i, bool contains)
+        public void AdjustTree(bool splitBefore, bool mustSplit)
         {
-            Logger.Log($"Označený uzel je list{(contains ? $", odstraníme klíč {i}" : $" a klíč {i} neobsahuje")}\n\n");
+            Logger.Log($"Označený uzel si upraví MBR");
+            if (splitBefore)
+            {
+                if (mustSplit)
+                    Logger.Log(", přidáním uzlu z předchozího splitu by došlo k přeplnění, je třeba split");
+                else
+                    Logger.Log(", přidá se uzel z předchozího splitu");
+            }
+            Logger.Log("\n\n");
         }
 
         public void SplitCreatedNewRoot()
@@ -70,60 +68,17 @@ namespace Tree_To_Tikz
             Logger.Log("Uzel se rozdělil" + (mustSplit ? ", označený uzel je přeplněný a musí se opět rozdělit" : "") + "\n\n");
         }
 
-        public void Merge(bool right, int i)
-        {
-            Logger.Log($"Všichni sourozenci potomka, který by měl obsahovat klíč {i}, mají minimální stupeň.\n\n" + "Slijeme potomka s " + (right ? "pravým" : "levým") + "sourozencem\n\n");
-        }
-
-        public void PreventiveSplitNeeded()
-        {
-            Logger.Log("Uzel má maximální stupeň, preventivně se rozdělí.");
-        }
-
-        public void MoreThanMinDegree()
-        {
-            Logger.Log("Označený uzel má více než minimum klíčů\n\n");
-        }
-
-        public void MustEnforceMoreThanMin()
-        {
-            Logger.Log("Označený uzel má minimum klíčů\n\n");
-        }
-
-        public void EnforceLeftHasMore(int i)
-        {
-            Logger.Log($"Levý sourozenec potomka, který by měl obsahovat klíč {i} má více než minimální stupeň, provedeme rotaci\n\n");
-        }
-
-        public void EnforceRightHasMore(int i)
-        {
-            Logger.Log($"Pravý sourozenec potomka, který by měl obsahovat klíč {i} má více než minimální stupeň, provedeme rotaci\n\n");
-        }
-
-        public void ReplaceLeftmost(int i)
-        {
-            Logger.Log($"Potomek následující odstraňovanému klíči má více než minimální stupeň. Nahradíme {i} nejmenším prvkem z tohoto podstromu. Z podstromu jej potom rekurzivně odstraníme\n\n");
-        }
-
-        public void ReplaceRightmost(int i)
-        {
-            Logger.Log($"Potomek předcházející odstraňovanému klíči má více než minimální stupeň. Nahradíme {i} největším prvkem z tohoto podstromu. Z podstromu jej potom rekurzivně odstraníme\n\n");
-        }
-
-        public void ReplaceMerge(int i)
-        {
-            Logger.Log($"slejeme potomky předcházející a následující klíči {i}. z nově vzniklého potomka {i} rekurzivně odstraníme\n\n");
-        }
-
-        string ToLaTeX(BTreeNode root, BTreeNode marked)
+        string ToLaTeX(RTreeNode root, RTreeNode marked)
         {
             if (root == null)
                 return "";
             Marked = marked;
-            int maxPartWidth = root.MaxPartWidth;
             string levels = Levels(root);
+            int maxPartWidth = root.MaxPartWidth;
             string positionStyles = PositionStyles();
             string nodes = NodeStructure(root);
+            string plane = Plane(root);
+            string areas = Areas(root);
             string res = @"\begin{figure}[H]
 \centering
 \begin{scaletikzpicturemaxtowidth}{\textwidth}
@@ -141,12 +96,72 @@ levels + @"% styles for edge positions" + Environment.NewLine + positionStyles +
 \end{scaletikzpicturemaxtowidth}
 \end{figure}
 
+\begin{figure}[H]
+\centering
+\begin{scaletikzpicturetowidth}{\textwidth}
+\begin{tikzpicture} [
+    % scaling
+    scale=\tikzscale,
+    every rectangle/.style={scale=\tikzscale},
+    every edge/.style={->,scale=\tikzscale}
+    ]
+" + plane + Environment.NewLine + areas + Environment.NewLine + @"
+
+\end{tikzpicture}
+\end{scaletikzpicturetowidth}
+\end{figure}
 ";
             Marked = null;
             return res;
         }
 
-        string Levels(BTreeNode root)
+        string Plane(RTreeNode root)
+        {
+            Rectangle rootR = root.MinimalBoundedRectangle;
+            double maxSide = Math.Max(rootR.Right - rootR.Left, rootR.Top - rootR.Bottom);
+            string right = DoubleToString(rootR.Left + maxSide);
+            string top = DoubleToString(rootR.Bottom + maxSide);
+            return @"\draw[draw=black, dotted] (" + DoubleToString(rootR.Left) + ", " + DoubleToString(rootR.Bottom) + ") rectangle (" + right + ", " + top + ");\n";
+        }
+
+        string DoubleToString(double d)
+        {
+            return d.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        }
+
+        string Areas(RTreeNode root)
+        {
+            string res = "";
+            Queue<RTreeNode> q = new Queue<RTreeNode>();
+            q.Enqueue(root);
+            while (q.Any())
+            {
+                RTreeNode n = q.Dequeue();
+                if (n.IsLeaf)
+                {
+                    var records = n.IndexRecords;
+                    var names = n.ChildNames;
+                    records.Zip(names).ToList().ForEach(tuple => res += RecordToString(tuple.Item1, tuple.Item2, true));
+                    continue;
+                }
+                else
+                {
+                    var records = n.InnerRecords;
+                    var names = n.ChildNames;
+                    records.Zip(names).ToList().ForEach(tuple => res += RecordToString(tuple.Item1, tuple.Item2, false));
+                }
+                foreach (RTreeNode child in n.InnerRecords.Select(r => r.Node))
+                    q.Enqueue(child);
+            }
+            return res;
+        }
+
+        string RecordToString(Record r, string name, bool isLeaf)
+        {
+            return @"\draw[draw=black" + (isLeaf ? "" : ", dashed") + "] (" + DoubleToString(r.MBR.Left) + ", " + DoubleToString(r.MBR.Bottom) + ") rectangle (" + DoubleToString(r.MBR.Right) + ", " + DoubleToString(r.MBR.Top) + ") node[pos=0.5] {" + name + "};";
+        }
+
+        string Levels(RTreeNode root)
         {
             List<double> distances = CountDistances(root);
             string res = "";
@@ -159,12 +174,12 @@ levels + @"% styles for edge positions" + Environment.NewLine + positionStyles +
             return res;
         }
 
-        List<double> CountDistances(BTreeNode root)
+        List<double> CountDistances(RTreeNode root)
         {
-            if (root.IsList)
-                return new List<double>();
             Stack<int> maxLevelDegrees = new Stack<int>(MaxLevelDegrees(root));
             List<double> revRes = new List<double>();
+            if (root.IsLeaf)
+                return new List<double>();
             revRes.Add(maxLevelDegrees.Pop() * (root.MaxPartWidth + 2) * DigitWidth);
             while (maxLevelDegrees.Any())
                 revRes.Add(revRes.Last() * (maxLevelDegrees.Pop() + 1));
@@ -173,18 +188,24 @@ levels + @"% styles for edge positions" + Environment.NewLine + positionStyles +
         }
 
 
-        List<int> MaxLevelDegrees(BTreeNode root)
+        List<int> MaxLevelDegrees(RTreeNode root)
         {
             List<int> res = new List<int>();
-            Queue<BTreeNode> q = new Queue<BTreeNode>();
+            Queue<RTreeNode> q = new Queue<RTreeNode>();
             q.Enqueue(root);
             root.Depth = 0;
+            int nameIndex = 1;
             while (q.Any())
             {
-                BTreeNode n = q.Dequeue();
-                if (n.IsList)
+                RTreeNode n = q.Dequeue();
+                n.ChildNames.Clear();
+                for (int i = 0; i < n.Degree; i++)
+                {
+                    n.ChildNames.Add($"R{nameIndex++}");
+                }
+                if (n.IsLeaf)
                     continue;
-                foreach (BTreeNode child in n.Children)
+                foreach (RTreeNode child in n.InnerRecords.Select(r => r.Node))
                 {
                     child.Depth = n.Depth + 1;
                     q.Enqueue(child);
@@ -204,7 +225,7 @@ levels + @"% styles for edge positions" + Environment.NewLine + positionStyles +
             {
                 res += "    " + NumberToSerial(i) +
                 "/.style = { edge from parent path={(\\tikzparentnode." +
-                (i == 1 ? "south west" : IntText[i - 2] + " split south") +
+                IntText[i - 1] + " south" +
                 ")" + (CurvedArrows ? " .. controls +(0,-1) and +(0,1) .. " : "->") + "(\\tikzchildnode.north)}},\n";
             }
             return res;
@@ -215,34 +236,40 @@ levels + @"% styles for edge positions" + Environment.NewLine + positionStyles +
             return "" + i + (i < 3 ? (i == 1 ? "st" : "nd") : (i == 3 ? "rd" : "th"));
         }
 
-        string NodeContentToString(BTreeNode n)
+        string NodeContentToString(RTreeNode n)
         {
             string res = "{";
-            res += n.Content[0];
-            for (int i = 1; i < n.Content.Count; i++)
+            res += n.ChildNames[0];
+            for (int i = 1; i < n.ChildNames.Count; i++)
             {
-                res += " \\nodepart{" + IntText[i] + "} " + n.Content[i];
+                res += " \\nodepart{" + IntText[i] + "} " + n.ChildNames[i];
             }
             return res + "}";
         }
 
-        string NodeStructure(BTreeNode root)
+        string NodeStructure(RTreeNode root)
         {
             string indent = "        ";
             string res = indent + "\\node" + (root == Marked ? "[marked]" : "") + NodeContentToString(root) + Environment.NewLine;
-            if (!root.IsList)
-                for (int i = 0; i < root.Children.Count; i++)
-                    res += NodeStructure(root.Children[i], i, indent + "        ");
+            if (!root.IsLeaf)
+            {
+                var children = root.InnerRecords.Select(r => r.Node).ToList();
+                for (int i = 0; i < children.Count(); i++)
+                    res += NodeStructure(children[i], i, indent + "        ");
+            }
             return res + "        ;";
         }
 
-        string NodeStructure(BTreeNode n, int i, string indent)
+        string NodeStructure(RTreeNode n, int i, string indent)
         {
             //string res = indent + "child[" + NumberToSerial(i + 1) + "] { node" + (n.IsList ? "[list]" : "") + " " + NodeContentToString(n) + Environment.NewLine;string res = indent + "child[" + NumberToSerial(i + 1) + "] { node" + (n.IsList ? "[list]" : "") + " " + NodeContentToString(n) + Environment.NewLine;
             string res = indent + "child[" + NumberToSerial(i + 1) + "] { node" + (n == Marked ? "[marked]" : "") + " " + NodeContentToString(n) + Environment.NewLine;
-            if (!n.IsList)
-                for (int j = 0; j < n.Children.Count; j++)
-                    res += NodeStructure(n.Children[j], j, indent + "        ");
+            if (!n.IsLeaf)
+            {
+                var children = n.InnerRecords.Select(r => r.Node).ToList();
+                for (int j = 0; j < children.Count; j++)
+                    res += NodeStructure(children[j], j, indent + "        ");
+            }
             res += indent + "        " + "edge from parent [-Triangle[scale=2]]}\n";
             return res;
         }

@@ -72,7 +72,7 @@ namespace Tree_To_Tikz
             string pointers = Pointers();
             string res = @"\begin{figure}[H]
 \centering
-\begin{scaletikzpicturetowidth}{\textwidth}
+\begin{scaletikzpicturemaxtowidth}{\textwidth}
 \begin{tikzpicture} [
     % scaling
     scale=\tikzscale,
@@ -86,7 +86,7 @@ levels + @"% styles for edge positions" + Environment.NewLine + positionStyles +
 \node(data) " + data + @";
         " + Environment.NewLine + pointers + @"
 \end{tikzpicture}
-\end{scaletikzpicturetowidth}
+\end{scaletikzpicturemaxtowidth}
 \end{figure}
 
 ";

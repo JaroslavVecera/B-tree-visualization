@@ -86,7 +86,7 @@ namespace Tree_To_Tikz
             string nodes = NodeStructure(root);
             string res = @"\begin{figure}[H]
 \centering
-\begin{scaletikzpicturetowidth}{\textwidth}
+\begin{scaletikzpicturemaxtowidth}{\textwidth}
 \begin{tikzpicture} [
     % scaling
     scale=\tikzscale,
@@ -98,7 +98,7 @@ levels + @"% styles for edge positions" + Environment.NewLine + positionStyles +
     marked/.style= { blue }
     ]" + Environment.NewLine + nodes + @"
 \end{tikzpicture}
-\end{scaletikzpicturetowidth}
+\end{scaletikzpicturemaxtowidth}
 \end{figure}
 
 ";
