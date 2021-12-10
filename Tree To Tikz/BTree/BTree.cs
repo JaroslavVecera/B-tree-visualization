@@ -187,6 +187,8 @@ namespace Tree_To_Tikz
                 Latex.RemoveFromLeaf(i, true);
                 Draw(n);
                 n.Remove(i);
+                if (Root.Degree == 0)
+                    Root = null;
                 Draw();
             }
         }
