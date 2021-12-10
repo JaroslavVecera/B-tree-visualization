@@ -48,14 +48,14 @@ namespace Tree_To_Tikz
             Logger.Log($"Vytvoří se nový kořen s klíčem {i}\n\n");
         }
 
-        public void AddToList(int i, bool alreadyContains, bool mustSplit)
+        public void AddToLeaf(int i, bool alreadyContains, bool mustSplit)
         {
             Logger.Log($"Nalezne se odpovídající list{(alreadyContains ? $", ten již {i} obsahuje" : $" a vloží se klíč {i}")}");
             Logger.Log($"{ (mustSplit ? ".Uzel je přeplněný, je třeba Split" : "") }");
             Logger.Log("\n\n");
         }
 
-        public void RemoveFromList(int i, bool contains)
+        public void RemoveFromLeaf(int i, bool contains)
         {
             Logger.Log($"Označený uzel je list{(contains ? $", odstraníme klíč {i}" : $" a klíč {i} neobsahuje")}\n\n");
         }
@@ -134,7 +134,7 @@ namespace Tree_To_Tikz
     every edge/.style={->,scale=\tikzscale},
     % level styling
     % for each level, the approximate maximum width of the node was calculated and the distance between siblings was set accordingly" + Environment.NewLine +
-levels + @"% styles for edge positions" + Environment.NewLine + positionStyles + @"% list style
+levels + @"% styles for edge positions" + Environment.NewLine + positionStyles + @"% marked style
     marked/.style= { blue }
     ]" + Environment.NewLine + nodes + @"
 \end{tikzpicture}
@@ -161,7 +161,7 @@ levels + @"% styles for edge positions" + Environment.NewLine + positionStyles +
 
         List<double> CountDistances(BTreeNode root)
         {
-            if (root.IsList)
+            if (root.IsLeaf)
                 return new List<double>();
             Stack<int> maxLevelDegrees = new Stack<int>(MaxLevelDegrees(root));
             List<double> revRes = new List<double>();
@@ -182,7 +182,7 @@ levels + @"% styles for edge positions" + Environment.NewLine + positionStyles +
             while (q.Any())
             {
                 BTreeNode n = q.Dequeue();
-                if (n.IsList)
+                if (n.IsLeaf)
                     continue;
                 foreach (BTreeNode child in n.Children)
                 {
@@ -230,7 +230,7 @@ levels + @"% styles for edge positions" + Environment.NewLine + positionStyles +
         {
             string indent = "        ";
             string res = indent + "\\node" + (root == Marked ? "[marked]" : "") + NodeContentToString(root) + Environment.NewLine;
-            if (!root.IsList)
+            if (!root.IsLeaf)
                 for (int i = 0; i < root.Children.Count; i++)
                     res += NodeStructure(root.Children[i], i, indent + "        ");
             return res + "        ;";
@@ -238,9 +238,8 @@ levels + @"% styles for edge positions" + Environment.NewLine + positionStyles +
 
         string NodeStructure(BTreeNode n, int i, string indent)
         {
-            //string res = indent + "child[" + NumberToSerial(i + 1) + "] { node" + (n.IsList ? "[list]" : "") + " " + NodeContentToString(n) + Environment.NewLine;string res = indent + "child[" + NumberToSerial(i + 1) + "] { node" + (n.IsList ? "[list]" : "") + " " + NodeContentToString(n) + Environment.NewLine;
             string res = indent + "child[" + NumberToSerial(i + 1) + "] { node" + (n == Marked ? "[marked]" : "") + " " + NodeContentToString(n) + Environment.NewLine;
-            if (!n.IsList)
+            if (!n.IsLeaf)
                 for (int j = 0; j < n.Children.Count; j++)
                     res += NodeStructure(n.Children[j], j, indent + "        ");
             res += indent + "        " + "edge from parent [-Triangle[scale=2]]}\n";

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Tree_To_Tikz
 {
-    public class BStarTree : Tree
+    public class BStarTree : BXTree
     {
         public int MaxRootDegree { get { return ((2 * MaxDegree) / 3) * 2; } }
         public int MaxDegree { get; private set; }
@@ -20,7 +20,7 @@ namespace Tree_To_Tikz
             Root = null;
         }
 
-        public Stack<BStarTreeNode> FindList(int i)
+        public Stack<BStarTreeNode> FindLeaf(int i)
         {
             var node = Root;
             Stack<BStarTreeNode> path = new Stack<BStarTreeNode>();
@@ -44,7 +44,7 @@ namespace Tree_To_Tikz
                 CreateRoot(i);
             else
             {
-                var l = FindList(i);
+                var l = FindLeaf(i);
                 var contains = l.Peek().Contains(i);
                 l.Peek().Add(i);
                 if (l.Peek().Degree > MaxRootDegree || (l.Peek() != Root && l.Peek().Degree > MaxDegree))
@@ -53,7 +53,7 @@ namespace Tree_To_Tikz
                 }
                 else
                 {
-                    Latex.AddToList(i, contains, false);
+                    Latex.AddToLeaf(i, contains, false);
                     Draw(l.Peek());
                 }
             }

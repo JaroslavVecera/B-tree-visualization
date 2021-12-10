@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Tree_To_Tikz
 {
-    public class BPlusTree : Tree
+    public class BPlusTree : BXTree
     {
         public int MinDegree { get { return (MaxDegree - 1) / 2 + 1; ; } }
         public int MaxDegree { get; private set; }
@@ -30,24 +30,24 @@ namespace Tree_To_Tikz
                 CreateRoot(i);
             else
             {
-                var l = FindList(i);
+                var l = FindLeaf(i);
                 var contains = l.Peek().Contains(i);
                 l.Peek().Add(i);
                 if (l.Peek().Degree > MaxDegree)
                 {
-                    Latex.AddToList(i, contains, true);
+                    Latex.AddToLeaf(i, contains, true);
                     Draw(l.Peek());
                     Split(l);
                 }
                 else
                 {
-                    Latex.AddToList(i, contains, false);
+                    Latex.AddToLeaf(i, contains, false);
                     Draw(l.Peek());
                 }
             }
         }
 
-        public Stack<BPlusTreeNode> FindList(int i)
+        public Stack<BPlusTreeNode> FindLeaf(int i)
         {
             var node = Root;
             Stack<BPlusTreeNode> path = new Stack<BPlusTreeNode>();
@@ -74,7 +74,7 @@ namespace Tree_To_Tikz
         void Split(Stack<BPlusTreeNode> l)
         {
             BPlusTreeNode curr = l.Pop();
-            bool isList = curr.IsList;
+            bool isLeaf = curr.IsLeaf;
             var split = curr.GetSplit();
             if (!l.Any())
             {
@@ -82,7 +82,7 @@ namespace Tree_To_Tikz
                 Root.Add(split.Item2);
                 Root.Children[0] = split.Item1;
                 Root.Children[1] = split.Item3;
-                Latex.SplitCreatedNewRoot(isList);
+                Latex.SplitCreatedNewRoot(isLeaf);
                 Draw(Root);
             }
             else
@@ -95,13 +95,13 @@ namespace Tree_To_Tikz
 
                 if (parent.Degree > MaxDegree)
                 {
-                    Latex.Split(true, isList);
+                    Latex.Split(true, isLeaf);
                     Draw(parent);
                     Split(l);
                 }
                 else
                 {
-                    Latex.Split(false, isList);
+                    Latex.Split(false, isLeaf);
                     Draw(parent);
                 }
             }

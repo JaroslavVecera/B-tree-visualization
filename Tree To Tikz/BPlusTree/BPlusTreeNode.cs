@@ -11,8 +11,8 @@ namespace Tree_To_Tikz
         public List<int> Content { get; private set; }
         public List<BPlusTreeNode> Children { get; private set; }
         public int Degree { get { return Content.Count; } }
-        public bool IsList { get { return Children[0] == null; } }
-        public int MaxPartWidth { get { return Math.Max(Content.Max(c => c.ToString().Length), IsList? 0 : Children.Max(c => c.MaxPartWidth)); } }
+        public bool IsLeaf { get { return Children[0] == null; } }
+        public int MaxPartWidth { get { return Math.Max(Content.Max(c => c.ToString().Length), IsLeaf? 0 : Children.Max(c => c.MaxPartWidth)); } }
         public int Depth { get; set; }
         public BPlusTreeNode Next { get; set; } = null;
 
@@ -61,13 +61,13 @@ namespace Tree_To_Tikz
 
         public Tuple<BPlusTreeNode, int, BPlusTreeNode> GetSplit()
         {
-            if (IsList)
-                return GetListSplit();
+            if (IsLeaf)
+                return GetLeafSplit();
             else
                 return GetInternalSplit();
         }
 
-        Tuple<BPlusTreeNode, int, BPlusTreeNode> GetListSplit()
+        Tuple<BPlusTreeNode, int, BPlusTreeNode> GetLeafSplit()
         { 
             int splitDegree = (Degree - 2) / 2 + 1;
             var l = new BPlusTreeNode();
@@ -123,7 +123,7 @@ namespace Tree_To_Tikz
 
         public int FindMax()
         {
-            if (IsList)
+            if (IsLeaf)
                 return Content.Max();
             else
                 return Children[Degree].FindMax();
@@ -131,7 +131,7 @@ namespace Tree_To_Tikz
 
         public int FindMin()
         {
-            if (IsList)
+            if (IsLeaf)
                 return Content.Min();
             else
                 return Children[0].FindMin();

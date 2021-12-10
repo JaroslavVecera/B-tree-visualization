@@ -6,26 +6,12 @@ using System.Threading.Tasks;
 
 namespace Tree_To_Tikz
 {
-    public class BTree : Tree
+    public class BTree : BXTree
     {
         public int MinDegree { get; private set; }
         public int MaxDegree { get { return 2 * MinDegree + 1; } }
         public BTreeNode Root { get; private set; }
         BTreeLaTeXGenerator Latex { get; set; }
-        int LevelCount
-        {
-            get
-            {
-                var n = Root;
-                int l = 0;
-                while (n != null)
-                {
-                    l++;
-                    n = n.Children[0];
-                }
-                return l;
-            }
-        }
 
         public BTree(int degree, Logger l)
         {
@@ -34,7 +20,7 @@ namespace Tree_To_Tikz
             Root = null;
         }
 
-        public Stack<BTreeNode> FindList(int i)
+        public Stack<BTreeNode> FindLeaf(int i)
         {
             var node = Root;
             Stack<BTreeNode> path = new Stack<BTreeNode>();
@@ -50,7 +36,7 @@ namespace Tree_To_Tikz
             }
         }
 
-        BTreeNode FindListWithPreventiveSplit(int i)
+        BTreeNode FindLeafWithPreventiveSplit(int i)
         {
             BTreeNode parent = null;
             var node = Root;
@@ -96,18 +82,18 @@ namespace Tree_To_Tikz
                 CreateRoot(i);
             else
             {
-                var l = FindList(i);
+                var l = FindLeaf(i);
                 var contains = l.Peek().Contains(i);
                 l.Peek().Add(i);
                 if (l.Peek().Degree > MaxDegree)
                 {
-                    Latex.AddToList(i, contains, true);
+                    Latex.AddToLeaf(i, contains, true);
                     Draw(l.Peek());
                     Split(l);
                 }
                 else
                 {
-                    Latex.AddToList(i, contains, false);
+                    Latex.AddToLeaf(i, contains, false);
                     Draw(l.Peek());
                 }
             }
@@ -121,10 +107,10 @@ namespace Tree_To_Tikz
                 CreateRoot(i);
             else
             {
-                var l = FindListWithPreventiveSplit(i);
+                var l = FindLeafWithPreventiveSplit(i);
                 var contains = l.Contains(i);
                 l.Add(i);
-                Latex.AddToList(i, contains, false);
+                Latex.AddToLeaf(i, contains, false);
                 Draw(l);
             }
         }
@@ -174,12 +160,6 @@ namespace Tree_To_Tikz
 
         public override void Remove(int i)
         {
-            /*if (Root.IsList && Root.Contains(i))
-            {
-                Root.Remove(i);
-                if (Root.Degree == 0)
-                    Root = null;
-            }*/
             Latex.Remove(i);
             Draw();
             if (Root == null)
@@ -192,19 +172,19 @@ namespace Tree_To_Tikz
 
         void RemoveFrom(int i, BTreeNode n)
         {
-            if (n.IsList)
-                RemoveFromList(i, n);
+            if (n.IsLeaf)
+                RemoveFromLeaf(i, n);
             else
                 RemoveFromInnerNode(i, n);
         }
 
-        void RemoveFromList(int i, BTreeNode n)
+        void RemoveFromLeaf(int i, BTreeNode n)
         {
             if (!n.Contains(i))
-                Latex.RemoveFromList(i, false);
+                Latex.RemoveFromLeaf(i, false);
             else
             {
-                Latex.RemoveFromList(i, true);
+                Latex.RemoveFromLeaf(i, true);
                 Draw(n);
                 n.Remove(i);
                 Draw();

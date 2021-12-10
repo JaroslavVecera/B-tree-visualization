@@ -91,7 +91,7 @@
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
                 <Button Click="CopyOutput"  Background="Gray" FontSize="17">Copy Output</Button>
-                <Button Click="CopySetting"  Grid.Column="1" Background="Gray" FontSize="17">Copy Head</Button>
+                <Button Click="CopyHead"  Grid.Column="1" Background="Gray" FontSize="17">Copy Head</Button>
             </Grid>
         </Grid>
     </Grid>

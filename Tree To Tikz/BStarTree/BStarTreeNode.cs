@@ -11,8 +11,8 @@ namespace Tree_To_Tikz
         public List<int> Content { get; private set; }
         public List<BStarTreeNode> Children { get; private set; }
         public int Degree { get { return Content.Count; } }
-        public bool IsList { get { return Children[0] == null; } }
-        public int MaxPartWidth { get { return Math.Max(Content.Max(c => c.ToString().Length), IsList? 0 : Children.Max(c => c.MaxPartWidth)); } }
+        public bool IsLeaf { get { return Children[0] == null; } }
+        public int MaxPartWidth { get { return Math.Max(Content.Max(c => c.ToString().Length), IsLeaf? 0 : Children.Max(c => c.MaxPartWidth)); } }
         public int Depth { get; set; }
 
         public BStarTreeNode()
@@ -100,7 +100,7 @@ namespace Tree_To_Tikz
 
         public int FindMax()
         {
-            if (IsList)
+            if (IsLeaf)
                 return Content.Max();
             else
                 return Children[Degree].FindMax();
@@ -108,7 +108,7 @@ namespace Tree_To_Tikz
 
         public int FindMin()
         {
-            if (IsList)
+            if (IsLeaf)
                 return Content.Min();
             else
                 return Children[0].FindMin();

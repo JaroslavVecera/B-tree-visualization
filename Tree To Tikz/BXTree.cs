@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Tree_To_Tikz
 {
-    public abstract class Tree
+    public abstract class BXTree
     {
         abstract public void Add(int i);
         abstract public void Remove(int i);

@@ -121,7 +121,7 @@ levels + @"% styles for edge positions" + Environment.NewLine + positionStyles +
             double maxSide = Math.Max(rootR.Right - rootR.Left, rootR.Top - rootR.Bottom);
             string right = DoubleToString(rootR.Left + maxSide);
             string top = DoubleToString(rootR.Bottom + maxSide);
-            return @"\draw[draw=black, dotted] (" + DoubleToString(rootR.Left) + ", " + DoubleToString(rootR.Bottom) + ") rectangle (" + right + ", " + top + ");\n";
+            return @"\draw[draw=white, dotted] (" + DoubleToString(rootR.Left) + ", " + DoubleToString(rootR.Bottom) + ") rectangle (" + right + ", " + top + ");\n";
         }
 
         string DoubleToString(double d)

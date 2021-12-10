@@ -83,8 +83,8 @@ namespace Tree_To_Tikz
                 throw new InvalidOperationException();
             InnerRecord minimal = InnerRecords.Aggregate((min, x) =>
             {
-                double minExtention = new Rectangle(min.MBR, r.MBR).Area;
-                double xExtention = new Rectangle(x.MBR, r.MBR).Area;
+                double minExtention = new Rectangle(min.MBR, r.MBR).Area - min.MBR.Area;
+                double xExtention = new Rectangle(x.MBR, r.MBR).Area - x.MBR.Area;
                 if (minExtention < xExtention || (minExtention == xExtention && min.MBR.Area <= x.MBR.Area))
                     return min;
                 else

@@ -16,11 +16,11 @@ namespace Tree_To_Tikz
         string[] IntText { get; } = new string[] { "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve", "thirteen", "fourteen", "fiveteen", "sixteen", "seventeen", "eighteen", "nineteen", "twenty" };
         BPlusTreeNode Marked { get; set; } = null;
         BPlusTree Tree { get; set; }
-        List<BPlusTreeNode> ListList { get; set; }
+        List<BPlusTreeNode> LeafList { get; set; }
 
         public BPlusTreeLaTeXGenerator(Logger l, BPlusTree tree)
         {
-            ListList = new List<BPlusTreeNode>();
+            LeafList = new List<BPlusTreeNode>();
             Logger = l;
             Tree = tree;
             MaxDegree = tree.MaxDegree;
@@ -40,21 +40,21 @@ namespace Tree_To_Tikz
             Logger.Log($"Vytvoří se nový kořen s klíčem {i}\n\n");
         }
 
-        public void AddToList(int i, bool alreadyContains, bool mustSplit)
+        public void AddToLeaf(int i, bool alreadyContains, bool mustSplit)
         {
             Logger.Log($"Nalezne se odpovídající list{(alreadyContains ? $", ten již {i} obsahuje" : $" a vloží se klíč {i}")}");
             Logger.Log($"{ (mustSplit ? ".Uzel je přeplněný, je třeba Split" : "") }");
             Logger.Log("\n\n");
         }
 
-        public void SplitCreatedNewRoot(bool isList)
+        public void SplitCreatedNewRoot(bool isLeaf)
         {
-            Logger.Log("Splitem byl vytvořen nový kořen" + (isList ? ", nejmenší hodnota z pravé poloviny je do něj nakopírována" : "") + "\n\n");
+            Logger.Log("Splitem byl vytvořen nový kořen" + (isLeaf ? ", nejmenší hodnota z pravé poloviny je do něj nakopírována" : "") + "\n\n");
         }
 
-        public void Split(bool mustSplit, bool isList)
+        public void Split(bool mustSplit, bool isLeaf)
         {
-            Logger.Log("Uzel se rozdělil" + (isList ? ", nejmenší hodnota z pravé poloviny je nakopírována do rodiče" : "") + (mustSplit ? ", označený uzel je přeplněný a musí se opět rozdělit" : "") + "\n\n");
+            Logger.Log("Uzel se rozdělil" + (isLeaf ? ", nejmenší hodnota z pravé poloviny je nakopírována do rodiče" : "") + (mustSplit ? ", označený uzel je přeplněný a musí se opět rozdělit" : "") + "\n\n");
         }
 
         string ToLaTeX(BPlusTreeNode root, BPlusTreeNode marked)
@@ -65,9 +65,9 @@ namespace Tree_To_Tikz
             int maxPartWidth = root.MaxPartWidth;
             string levels = Levels(root);
             string positionStyles = PositionStyles();
-            ListList.Clear();
+            LeafList.Clear();
             string nodes = NodeStructure(root);
-            string links = ListLinks();
+            string links = LeafLinks();
             string data = Data();
             string pointers = Pointers();
             string res = @"\begin{figure}[H]
@@ -80,7 +80,7 @@ namespace Tree_To_Tikz
     every edge/.style={->,scale=\tikzscale},
     % level styling
     % for each level, the approximate maximum width of the node was calculated and the distance between siblings was set accordingly" + Environment.NewLine +
-levels + @"% styles for edge positions" + Environment.NewLine + positionStyles + @"% list style
+levels + @"% styles for edge positions" + Environment.NewLine + positionStyles + @"% marked style
     marked/.style= { blue }
     ]" + Environment.NewLine + nodes + Environment.NewLine + links + @"
 \node(data) " + data + @";
@@ -106,10 +106,10 @@ levels + @"% styles for edge positions" + Environment.NewLine + positionStyles +
             return count;
         }
 
-        string ListLinks()
+        string LeafLinks()
         {
             string res = "";
-            for (int i = 0; i < ListList.Count() - 1; i++)
+            for (int i = 0; i < LeafList.Count() - 1; i++)
                 res += $"\\draw[->, dashed](l{i})--(l{i + 1});\n";
             return res;
         }
@@ -117,9 +117,9 @@ levels + @"% styles for edge positions" + Environment.NewLine + positionStyles +
         string Data()
         {
             BPlusTreeNode DataNode = new BPlusTreeNode();
-            foreach (var list in ListList)
+            foreach (var leaf in LeafList)
             {
-                foreach (int i in list.Content)
+                foreach (int i in leaf.Content)
                 {
                     DataNode.Add(i);
                 }
@@ -131,12 +131,12 @@ levels + @"% styles for edge positions" + Environment.NewLine + positionStyles +
         {
             string res = "";
             int dataIndex = 0;
-            for (int listIndex = 0; listIndex < ListList.Count(); listIndex++)
+            for (int leafIndex = 0; leafIndex < LeafList.Count(); leafIndex++)
             {
-                var list = ListList[listIndex];
-                for (int partIndex = 0; partIndex < list.Content.Count(); partIndex++)
+                var leaf = LeafList[leafIndex];
+                for (int partIndex = 0; partIndex < leaf.Content.Count(); partIndex++)
                 {
-                    res += $"\\draw[->, dotted](l{listIndex}.{IntText[partIndex]} south)--(data.{IntText[dataIndex]} north);\n";
+                    res += $"\\draw[->, dotted](l{leafIndex}.{IntText[partIndex]} south)--(data.{IntText[dataIndex]} north);\n";
                     dataIndex++;
                 }
             }
@@ -158,7 +158,7 @@ levels + @"% styles for edge positions" + Environment.NewLine + positionStyles +
 
         List<double> CountDistances(BPlusTreeNode root)
         {
-            if (root.IsList)
+            if (root.IsLeaf)
                 return new List<double>();
             Stack<int> maxLevelDegrees = new Stack<int>(MaxLevelDegrees(root));
             List<double> revRes = new List<double>();
@@ -179,7 +179,7 @@ levels + @"% styles for edge positions" + Environment.NewLine + positionStyles +
             while (q.Any())
             {
                 BPlusTreeNode n = q.Dequeue();
-                if (n.IsList)
+                if (n.IsLeaf)
                     continue;
                 foreach (BPlusTreeNode child in n.Children)
                 {
@@ -226,22 +226,21 @@ levels + @"% styles for edge positions" + Environment.NewLine + positionStyles +
         string NodeStructure(BPlusTreeNode root)
         {
             string indent = "        ";
-            string res = indent + "\\node" + (root.IsList ? " (l0)" : "") + $" at(0, {(LevelCount() * 1.3 + 1).ToString(CultureInfo.InvariantCulture)}) " + (root == Marked ? "[marked]" : "") + NodeContentToString(root) + Environment.NewLine;
-            if (!root.IsList)
+            string res = indent + "\\node" + (root.IsLeaf ? " (l0)" : "") + $" at(0, {(LevelCount() * 1.3 + 1).ToString(CultureInfo.InvariantCulture)}) " + (root == Marked ? "[marked]" : "") + NodeContentToString(root) + Environment.NewLine;
+            if (!root.IsLeaf)
                 for (int i = 0; i < root.Children.Count; i++)
                     res += NodeStructure(root.Children[i], i, indent + "        ");
-            if (root.IsList)
-                ListList.Add(root);
+            if (root.IsLeaf)
+                LeafList.Add(root);
             return res + "        ;";
         }
 
         string NodeStructure(BPlusTreeNode n, int i, string indent)
         {
-            //string res = indent + "child[" + NumberToSerial(i + 1) + "] { node" + (n.IsList ? "[list]" : "") + " " + NodeContentToString(n) + Environment.NewLine;string res = indent + "child[" + NumberToSerial(i + 1) + "] { node" + (n.IsList ? "[list]" : "") + " " + NodeContentToString(n) + Environment.NewLine;
-            string res = indent + "child[" + NumberToSerial(i + 1) + "] { node" + (n.IsList ? $"(l{ListList.Count()})" : "") + (n == Marked ? "[marked]" : "") + " " + NodeContentToString(n) + Environment.NewLine;
-            if (n.IsList)
-                ListList.Add(n);
-            if (!n.IsList)
+            string res = indent + "child[" + NumberToSerial(i + 1) + "] { node" + (n.IsLeaf ? $"(l{LeafList.Count()})" : "") + (n == Marked ? "[marked]" : "") + " " + NodeContentToString(n) + Environment.NewLine;
+            if (n.IsLeaf)
+                LeafList.Add(n);
+            if (!n.IsLeaf)
                 for (int j = 0; j < n.Children.Count; j++)
                     res += NodeStructure(n.Children[j], j, indent + "        ");
             res += indent + "        " + "edge from parent [-Triangle[scale=2]]}\n";
